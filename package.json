@@ -45,10 +45,12 @@
     "downshift": "^6.1.9",
     "express": "^4.18.1",
     "isbot": "^3.5.1",
+    "lodash": "^4.17.21",
     "morgan": "^1.10.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-tsparticles": "^2.2.4",
+    "spin-delay": "^1.2.0",
     "tiny-invariant": "^1.2.0"
   },
   "devDependencies": {

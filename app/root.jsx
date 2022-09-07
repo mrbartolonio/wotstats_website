@@ -1,3 +1,6 @@
+import Navbar from "./components/Navbar";
+import { Footer } from "./components/Footer";
+
 const {
   Links,
   LiveReload,
@@ -26,8 +29,12 @@ export default function App() {
         <Meta />
         <Links />
       </head>
-      <body className="h-full">
-        <Outlet />
+      <body className="flex min-h-screen flex-col justify-between bg-gray-900">
+        <Navbar />
+        <main>
+          <Outlet />
+        </main>
+        <Footer />
         <ScrollRestoration />
         <Scripts />
         <LiveReload />

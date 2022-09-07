@@ -5,9 +5,11 @@ function Navbar() {
     <header>
       <nav className="bg-gray-700">
         <div className="container mx-auto flex items-center justify-between py-4">
-          <h1 className="text-2xl font-bold text-gray-50">
-            WorldOfTenks stats
-          </h1>
+          <a href="/">
+            <h1 className="text-2xl font-bold text-gray-50">
+              WorldOfTenks stats
+            </h1>
+          </a>
           <div className="flex space-x-10">
             <div className="flex items-center space-x-2">
               <span>
