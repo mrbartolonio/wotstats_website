@@ -26,16 +26,23 @@
     "validate": "run-p \"test -- --run\" lint test:e2e:run"
   },
   "prettier": {},
-  "eslintIgnore": ["/node_modules", "/build", "/public/build"],
+  "eslintIgnore": [
+    "/node_modules",
+    "/build",
+    "/public/build"
+  ],
   "dependencies": {
     "@prisma/client": "^4.2.1",
     "@remix-run/express": "^1.7.0",
     "@remix-run/node": "^1.7.0",
     "@remix-run/react": "^1.7.0",
     "@remix-run/server-runtime": "^1.7.0",
+    "axios": "^0.27.2",
     "bcryptjs": "^2.4.3",
+    "clsx": "^1.2.1",
     "compression": "^1.7.4",
     "cross-env": "^7.0.3",
+    "downshift": "^6.1.9",
     "express": "^4.18.1",
     "isbot": "^3.5.1",
     "morgan": "^1.10.0",
