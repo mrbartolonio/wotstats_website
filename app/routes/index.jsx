@@ -18,6 +18,7 @@ export async function action({ request }) {
       await getPlayerInfo(player, region);
       return redirect(`/${region}/${player}`);
     } catch (error) {
+      console.log(error);
       return json({ error });
     }
   }
