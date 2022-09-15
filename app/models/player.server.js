@@ -1,18 +1,29 @@
 import axios from "axios";
+import moment from "moment";
+const { prisma } = require("~/db.server");
 
 export async function getPlayerInfo(player, region) {
   try {
+    const now = new Date();
     const account_id = await getPlayerId(player, region);
 
-    const accountInfo = await getPlayerAccountData(account_id, region);
+    //  const accountInfo = await getPlayerAccountData(account_id, region);
 
     const tanksInfo = await avgTankStats(account_id, region);
     //  console.log(statistics);
     const wn8expVals = await getWn8ExpVal();
 
-    await getRecentPerTank(wn8expVals, tanksInfo);
+    const wn8PerTank = await getRecentPerTank(wn8expVals, tanksInfo);
 
-    return accountInfo;
+    const wn8 = await getOverallWn8(wn8expVals, tanksInfo);
+    const returnedData = await insertData(
+      wn8,
+      wn8PerTank,
+      account_id,
+      region,
+      now
+    );
+    return returnedData;
   } catch (error) {
     throw error;
   }
@@ -162,6 +173,103 @@ async function getRecentPerTank(wn8exp, { tanks_list, data }) {
       return null;
     }
   });
-  console.log(wn8perTank);
+  return wn8perTank;
   //mozna inserta do bazy zajebac
+}
+
+async function getOverallWn8(wn8exp, { tanks_list, data }) {
+  let totalExpDef = 0;
+  let totalExpFrag = 0;
+  let totalExpSpot = 0;
+  let totalExpDamage = 0;
+  let totalExpWinRate = 0;
+  let totalAvgDef = 0;
+  let totalAvgFrag = 0;
+  let totalAvgSpot = 0;
+  let totalAvgDamage = 0;
+  let totalAvgWinRate = 0;
+  tanks_list.map((vals) => {
+    const wn8expdata = wn8exp.find((x) => x.tank === vals).data;
+    if (wn8expdata) {
+      const tankData = data[vals];
+
+      totalExpDef +=
+        parseFloat(tankData.battles) * parseFloat(wn8expdata.expDef);
+      totalExpFrag +=
+        parseFloat(tankData.battles) * parseFloat(wn8expdata.expFrag);
+      totalExpSpot +=
+        parseFloat(tankData.battles) * parseFloat(wn8expdata.expSpot);
+      totalExpDamage +=
+        parseFloat(tankData.battles) * parseFloat(wn8expdata.expDamage);
+      totalExpWinRate +=
+        parseFloat(tankData.battles) * parseFloat(wn8expdata.expWinRate);
+      totalAvgDef += parseFloat(tankData.avgDef);
+      totalAvgFrag += parseFloat(tankData.avgFrag);
+      totalAvgSpot += parseFloat(tankData.avgSpot);
+      totalAvgDamage += parseFloat(tankData.avgDamage);
+      totalAvgWinRate +=
+        parseFloat(tankData.battles) * parseFloat(tankData.avgWinRate);
+    }
+    return null;
+  });
+  const rDAMAGE = totalAvgDamage / totalExpDamage;
+  const rSPOT = totalAvgSpot / totalExpSpot;
+  const rFRAG = totalAvgFrag / totalExpFrag;
+  const rDEF = totalAvgDef / totalExpDef;
+  const rWIN = totalAvgWinRate / totalExpWinRate;
+
+  const rWINc = Math.max(0, (rWIN - 0.71) / (1 - 0.71));
+  const rDAMAGEc = Math.max(0, (rDAMAGE - 0.22) / (1 - 0.22));
+  const rFRAGc = Math.max(
+    0,
+    Math.min(rDAMAGEc + 0.2, (rFRAG - 0.12) / (1 - 0.12))
+  );
+  const rSPOTc = Math.max(
+    0,
+    Math.min(rDAMAGEc + 0.1, (rSPOT - 0.38) / (1 - 0.38))
+  );
+  const rDEFc = Math.max(0, Math.min(rDAMAGEc + 0.1, (rDEF - 0.1) / (1 - 0.1)));
+  return (
+    980 * rDAMAGEc +
+    210 * rDAMAGEc * rFRAGc +
+    155 * rFRAGc * rSPOTc +
+    75 * rDEFc * rFRAGc +
+    145 * Math.min(1.8, rWINc)
+  );
+}
+
+async function insertData(wn8, wn8PerTank, account_id, region, now) {
+  /*   const record = await prisma.playerstats.findUnique({
+    where: {
+      playerID_region_createdAt: {
+        playerID: account_id,
+        region,
+        createdAt: now,
+      },
+    },
+    select: {
+      id: true,
+    },
+  }); */
+
+  const data = JSON.stringify({ wn8: wn8, overall: wn8PerTank });
+  const stats = await prisma.playerstats.upsert({
+    where: {
+      playerID_region_createdAt: {
+        playerID: account_id,
+        region,
+        createdAt: now,
+      },
+    },
+    update: {
+      data,
+    },
+    create: {
+      playerID: account_id,
+      region,
+      data,
+    },
+  });
+  console.log(stats);
+  return stats;
 }
